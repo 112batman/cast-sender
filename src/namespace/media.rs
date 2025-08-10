@@ -538,6 +538,16 @@ pub struct MediaInformation {
     pub vmap_ads_request: Option<VastAdsRequest>,
 }
 
+impl Into<LoadRequestData> for MediaInformation {
+    fn into(self) -> LoadRequestData {
+        LoadRequestData {
+            media: self,
+            autoplay: Some(true),
+            ..Default::default()
+        }
+    }
+}
+
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug, Default, Builder)]
 #[serde(rename_all = "camelCase")]

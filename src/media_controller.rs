@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use smol::lock::Mutex;
 
-use crate::namespace::media::*;
+use crate::namespace::{media::*, Custom, NamespaceUrn};
 use crate::{App, Error, Payload, Receiver, Response};
 
 #[derive(Clone, Debug)]
@@ -29,17 +29,10 @@ impl MediaController {
         })
     }
 
-    pub async fn load(&self, media: MediaInformation) -> Result<(), Error> {
+    pub async fn load<P: Into<LoadRequestData>>(&self, load_request: P) -> Result<(), Error> {
         let response = self
             .receiver
-            .send_request(
-                &self.app,
-                Media::Load(LoadRequestData {
-                    media,
-                    autoplay: Some(true),
-                    ..Default::default()
-                }),
-            )
+            .send_request(&self.app, Media::Load(load_request.into()))
             .await?;
 
         Self::handle_error(&response)?;
