@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use smol::lock::Mutex;
 
-use crate::namespace::{media::*, Custom, NamespaceUrn};
+use crate::namespace::media::*;
 use crate::{App, Error, Payload, Receiver, Response};
 
 #[derive(Clone, Debug)]
