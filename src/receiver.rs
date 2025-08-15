@@ -25,6 +25,7 @@ pub struct Receiver {
     // Ids for request messages which get incremented
     request_id: Arc<Mutex<u32>>,
     requests: Arc<Mutex<HashMap<u32, Sender<Response>>>>,
+    receivers: Arc<Mutex<Vec<Sender<Response>>>>,
 }
 
 impl Receiver {
@@ -34,6 +35,7 @@ impl Receiver {
             platform: App::receiver(),
             request_id: Arc::default(),
             requests: Arc::default(),
+            receivers: Arc::default(),
         }
     }
 
@@ -238,6 +240,15 @@ impl Receiver {
         }
     }
 
+    pub async fn receive(&self) -> Result<Response, Error> {
+        let (response_tx, response_rx) = async_channel::bounded(1);
+        let mut receivers = self.receivers.lock().await;
+        receivers.push(response_tx);
+        drop(receivers);
+
+        response_rx.recv().await.map_err(|_| Error::NoResponse)
+    }
+
     async fn process_response(&self, response: Response) -> Result<(), Error> {
         // Check if this payload is a response to a sent request
         if let Some(request_id) = response.request_id {
@@ -251,6 +262,11 @@ impl Receiver {
 
         if let Payload::Heartbeat(Heartbeat::Ping) = &response.payload {
             self.send(&self.platform, Heartbeat::Pong).await?;
+        }
+
+        let mut receivers = self.receivers.lock().await;
+        for receiver in receivers.split_off(0) {
+            let _ = receiver.send(response.clone()).await;
         }
 
         Ok(())
