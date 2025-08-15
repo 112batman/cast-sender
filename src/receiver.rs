@@ -58,11 +58,11 @@ impl Receiver {
                     match client.receive().await {
                         Ok(response) => {
                             if let Err(err) = d.process_response(response).await {
-                                warn!("Unable to process received message: {}", err.to_string())
+                                warn!("Unable to process received message: {}", err)
                             }
                         }
                         Err(err) => {
-                            error!("Unable to receive message: {}", err.to_string());
+                            error!("Unable to receive message: {}", err);
                             d.disconnect().await;
                             break;
                         }
@@ -254,7 +254,7 @@ impl Receiver {
         if let Some(request_id) = response.request_id {
             if request_id != 0 {
                 match self.requests.lock().await.remove(&request_id) {
-                    Some(sender) => sender.send(response.clone()).await?,
+                    Some(sender) => sender.send(response.clone()).await.map_err(Box::new)?,
                     None => debug!("Ignore payload with unknown requestId"),
                 }
             }

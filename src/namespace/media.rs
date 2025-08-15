@@ -538,10 +538,10 @@ pub struct MediaInformation {
     pub vmap_ads_request: Option<VastAdsRequest>,
 }
 
-impl Into<LoadRequestData> for MediaInformation {
-    fn into(self) -> LoadRequestData {
+impl From<MediaInformation> for LoadRequestData {
+    fn from(val: MediaInformation) -> Self {
         LoadRequestData {
-            media: self,
+            media: val,
             autoplay: Some(true),
             ..Default::default()
         }

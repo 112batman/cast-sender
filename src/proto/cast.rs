@@ -194,6 +194,7 @@ pub mod auth_error {
     }
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
+#[allow(dead_code)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeviceAuthMessage {
     /// Request fields
@@ -261,6 +262,7 @@ impl HashAlgorithm {
     }
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
+#[allow(dead_code)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AuthorityKeys {
     #[prost(message, repeated, tag = "1")]
@@ -269,6 +271,7 @@ pub struct AuthorityKeys {
 /// Nested message and enum types in `AuthorityKeys`.
 pub mod authority_keys {
     #[allow(clippy::derive_partial_eq_without_eq)]
+    #[allow(dead_code)]
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Key {
         #[prost(bytes = "vec", required, tag = "1")]

@@ -3,6 +3,7 @@ use crate::namespace::{
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 #[serde(untagged)]
 pub enum Payload {
     Connection(Connection),

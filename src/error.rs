@@ -25,7 +25,7 @@ pub enum Error {
     Receive(#[from] async_channel::RecvError),
 
     #[error("Send error: {0}")]
-    Send(#[from] async_channel::SendError<Response>),
+    Send(#[from] Box<async_channel::SendError<Response>>),
 
     #[error("Did not receive request response")]
     ResponseTimeout,
