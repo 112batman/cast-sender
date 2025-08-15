@@ -1,32 +1,32 @@
 [package]
 name = "cast-sender"
 version = "0.2.0"
-edition = "2021"
-authors = ["Felix Häcker <haeckerfelix@gnome.org>"]
+edition = "2024"
+authors = [ "Felix Häcker <haeckerfelix@gnome.org>" ]
 license = "MIT"
 repository = "https://github.com/haecker-felix/cast-sender"
-keywords = ["chromecast", "cast", "castv2"]
+keywords = [ "chromecast", "cast", "castv2" ]
 description = "Fully asynchronous implementation of the Google Cast CASTV2 protocol, allowing communication with receivers such as Chromecast or Google TV devices."
 documentation = "https://docs.rs/cast_sender"
-categories = ["network-programming", "multimedia", "api-bindings"]
+categories = [ "network-programming", "multimedia", "api-bindings" ]
 
 [dependencies]
-async-channel = "2.3"
+async-channel = "2.5"
 async-native-tls = "0.5"
 async-net = "2.0"
-bitflags = "2.6"
-derive_builder = "0.20.1"
+bitflags = "2.9"
+derive_builder = "0.20"
 futures-util = "0.3"
 log = "0.4"
-prost = "0.13"
+prost = "0.14"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-serde_with = "3.9"
+serde_with = "3.14"
 smol = "2.0"
 smol-timeout = "0.6"
-strum = "0.26"
-strum_macros = "0.26"
+strum = "0.27"
+strum_macros = "0.27"
 thiserror = "1.0"
 
 [dev-dependencies]

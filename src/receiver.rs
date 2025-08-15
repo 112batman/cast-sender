@@ -112,8 +112,8 @@ impl Receiver {
                 return Err(Error::LaunchError(reason));
             }
 
-            if let receiver::Receiver::ReceiverStatus(ReceiverStatusResponse { status }) = payload {
-                if let Some(apps) = status.applications {
+            if let receiver::Receiver::ReceiverStatus(ReceiverStatusResponse { status }) = payload
+                && let Some(apps) = status.applications {
                     for app in apps {
                         if app.app_id == app_id {
                             // Establish new virtual connection to be able to send/receive app specific payloads
@@ -122,7 +122,6 @@ impl Receiver {
                         }
                     }
                 }
-            }
         }
 
         Err(Error::NoResponse)
@@ -251,14 +250,13 @@ impl Receiver {
 
     async fn process_response(&self, response: Response) -> Result<(), Error> {
         // Check if this payload is a response to a sent request
-        if let Some(request_id) = response.request_id {
-            if request_id != 0 {
+        if let Some(request_id) = response.request_id
+            && request_id != 0 {
                 match self.requests.lock().await.remove(&request_id) {
                     Some(sender) => sender.send(response.clone()).await.map_err(Box::new)?,
                     None => debug!("Ignore payload with unknown requestId"),
                 }
             }
-        }
 
         if let Payload::Heartbeat(Heartbeat::Ping) = &response.payload {
             self.send(&self.platform, Heartbeat::Pong).await?;
