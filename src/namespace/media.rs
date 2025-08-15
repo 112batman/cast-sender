@@ -827,10 +827,16 @@ pub struct VideoInformation {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum CaptionMimeType {
     #[default]
+    #[serde(alias = "cea608")]
     Cea608,
+    #[serde(alias = "ttml")]
     Ttml,
+    #[serde(alias = "vtt")]
     Vtt,
+    #[serde(alias = "ttmlmp3")]
     TtmlMp3,
+    #[serde(untagged)]
+    Other(String),
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -973,8 +979,11 @@ pub enum GetStatusOptions {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum HdrType {
     #[default]
+    #[serde(alias = "sdr")]
     Sdr,
+    #[serde(alias = "hdr")]
     Hdr,
+    #[serde(alias = "dv")]
     Dv,
 }
 
@@ -1200,4 +1209,85 @@ pub enum UserActionContext {
     Team,
     Player,
     Coach,
+}
+
+#[cfg(test)]
+mod test {
+    use crate::namespace::media::{CaptionMimeType, Media, MediaStatus};
+
+    #[test]
+    fn test_deserialize_media() {
+        let payload: Media = serde_json::from_str(
+            r#"
+            {
+                "type": "MEDIA_STATUS",
+                "status": [
+                    {
+                        "activeTrackIds": [7],
+                        "currentItemId": 1,
+                        "currentTime": 0,
+                        "items": [
+                            {
+                            "activeTrackIds": [2, 7],
+                            "autoplay": true,
+                            "itemId": 1,
+                            "media": {
+                                "contentId": "http://host.com/stream",
+                                "contentType": "video/x-matroska",
+                                "duration": 1422.004,
+                                "mediaCategory": "VIDEO",
+                                "streamType": "BUFFERED",
+                                "tracks": [
+                                    {
+                                        "language": "eng",
+                                        "name": "Audio",
+                                        "trackContentId": "trk0001",
+                                        "trackContentType": "audio/aac",
+                                        "trackId": 2,
+                                        "type": "AUDIO"
+                                    }, 
+                                    {
+                                        "language": "eng",
+                                        "name": "Subtitle",
+                                        "subtype": "SUBTITLES",
+                                        "trackContentId": "http://host.com/stream/subtitle",
+                                        "trackContentType": "text/vtt",
+                                        "trackId": 7,
+                                        "type": "TEXT"
+                                    }
+                                ]
+                            },
+                            "orderId": 0
+                        }],
+                        "mediaSessionId": 29,
+                        "playbackRate": 1,
+                        "playerState": "PLAYING",
+                        "repeatMode": "REPEAT_OFF",
+                        "supportedMediaCommands": 274447,
+                        "videoInfo": {"hdrType": "sdr", "height": 1080, "width": 1920},
+                        "volume": {"level": 1, "muted": false}
+                    }
+                ]
+            }
+        "#,
+        )
+        .unwrap();
+        assert!(
+            matches!(payload, Media::MediaStatus(_)),
+            "Failed: {payload:#?}"
+        );
+    }
+
+    #[test]
+    fn test_caption_mime() {
+        let cap: CaptionMimeType = serde_json::from_str(r#""garbage""#).unwrap();
+        let garbage = "garbage".to_string();
+        assert!(matches!(cap, CaptionMimeType::Other(garbage)));
+
+        let cap: CaptionMimeType = serde_json::from_str(r#""VTT""#).unwrap();
+        assert!(matches!(cap, CaptionMimeType::Vtt));
+
+        let cap: CaptionMimeType = serde_json::from_str(r#""vtt""#).unwrap();
+        assert!(matches!(cap, CaptionMimeType::Vtt));
+    }
 }
