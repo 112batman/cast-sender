@@ -1223,7 +1223,7 @@ pub enum UserActionContext {
 
 #[cfg(test)]
 mod test {
-    use crate::namespace::media::{CaptionMimeType, Media, MediaStatus};
+    use crate::namespace::media::{CaptionMimeType, Media};
 
     #[test]
     fn test_deserialize_media() {
@@ -1291,8 +1291,8 @@ mod test {
     #[test]
     fn test_caption_mime() {
         let cap: CaptionMimeType = serde_json::from_str(r#""garbage""#).unwrap();
-        let garbage = "garbage".to_string();
-        assert!(matches!(cap, CaptionMimeType::Other(garbage)));
+        let _garbage = "garbage".to_string();
+        assert!(matches!(cap, CaptionMimeType::Other(_garbage)));
 
         let cap: CaptionMimeType = serde_json::from_str(r#""VTT""#).unwrap();
         assert!(matches!(cap, CaptionMimeType::Vtt));
