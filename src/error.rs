@@ -13,7 +13,7 @@ pub enum Error {
     AddrParseError(#[from] std::net::AddrParseError),
 
     #[error("TLS error: {0}")]
-    Tls(#[from] async_native_tls::Error),
+    Tls(#[from] futures_rustls::rustls::Error),
 
     #[error("Decode error: {0}")]
     Decode(#[from] prost::DecodeError),

@@ -1,11 +1,15 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use async_native_tls::{TlsConnector, TlsStream};
 use async_net::TcpStream;
-use futures_util::io::{ReadHalf, WriteHalf};
-use futures_util::{AsyncReadExt, AsyncWriteExt};
+use futures_rustls::client::TlsStream;
+use futures_rustls::TlsConnector;
+use futures_rustls::pki_types::{CertificateDer, ServerName, UnixTime};
+use futures_rustls::rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
+use futures_rustls::rustls::client::ServerCertVerifierBuilder;
+use futures_rustls::rustls::{ClientConfig, DigitallySignedStruct, SignatureScheme};
 use prost::Message;
+use smol::io::{AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf};
 use smol::lock::Mutex;
 
 use super::proto;
@@ -30,19 +34,43 @@ pub struct Client {
     write_stream: Arc<Mutex<WriteHalf<TlsStream<TcpStream>>>>,
 }
 
+#[derive(Debug)]
+struct AcceptAllCertsCertVerifier {}
+impl ServerCertVerifier for AcceptAllCertsCertVerifier {
+    fn verify_server_cert(&self, end_entity: &CertificateDer<'_>, intermediates: &[CertificateDer<'_>], server_name: &ServerName<'_>, ocsp_response: &[u8], now: UnixTime) -> Result<ServerCertVerified, futures_rustls::rustls::Error> {
+        Ok(ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(&self, message: &[u8], cert: &CertificateDer<'_>, dss: &DigitallySignedStruct) -> Result<HandshakeSignatureValid, futures_rustls::rustls::Error> {
+        Ok(HandshakeSignatureValid::assertion())
+    }
+
+    fn verify_tls13_signature(&self, message: &[u8], cert: &CertificateDer<'_>, dss: &DigitallySignedStruct) -> Result<HandshakeSignatureValid, futures_rustls::rustls::Error> {
+        Ok(HandshakeSignatureValid::assertion())
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+        todo!()
+    }
+}
+
 impl Client {
     pub async fn connect(addr: &str) -> Result<Self, Error> {
         let addr = SocketAddr::new(addr.parse()?, 8009);
 
         // Casts devices are using self signed certs
-        let tls_connector = TlsConnector::new().danger_accept_invalid_certs(true);
+        let tls_config = ClientConfig::builder()
+            .dangerous()
+            .with_custom_certificate_verifier(Arc::new(AcceptAllCertsCertVerifier {}))
+            .with_no_client_auth();
+        let tls_connector = TlsConnector::from(Arc::new(tls_config));
         let tcp_stream = TcpStream::connect(&addr).await?;
 
         let tls_stream = tls_connector
-            .connect(addr.to_string(), tcp_stream.clone())
+            .connect(ServerName::from(addr.ip()), tcp_stream.clone())
             .await?;
 
-        let (read_stream, write_stream) = tls_stream.split();
+        let (read_stream, write_stream) = smol::io::split(tls_stream);
 
         Ok(Self {
             read_stream: Arc::new(Mutex::new(read_stream)),
