@@ -12,7 +12,7 @@ categories = [ "network-programming", "multimedia", "api-bindings" ]
 
 [dependencies]
 async-channel = "2.5"
-futures-rustls = "0.26.0"
+futures-rustls = { version = "0.26", default-features = false, features = ["tls12", "logging", "ring"] }
 async-net = "2.0"
 bitflags = "2.9"
 derive_builder = "0.20"
